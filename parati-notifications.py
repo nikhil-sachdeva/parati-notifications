@@ -9,10 +9,10 @@ def getDB():
 										 passwd="pass",  # your password
 										 database="paratidb")        # name of the data base
 
-def send_notif(fcm_token, message):
+def send_notif(fcm_token,title, message):
   push_service = FCMNotification(api_key="api-key")
   registration_id = fcm_token
-  message_title = "Parati"
+  message_title = title
   message_body = message
   result = push_service.notify_single_device(registration_id=registration_id, message_title=message_title, message_body=message_body)
   print(result)
@@ -102,7 +102,7 @@ def start_browsing_notif():
 		for row in users:
 			print(row)
 			if(row[1]!='temp'):
-				send_notif(row[1], "Hi " + row[2] + ", browse through your personalized product recommendations.")
+				send_notif(row[1],"Start swiping!", "Hi " + row[2] + ", browse through your personalized product recommendations.")
 				update_frequency("start_browsing", row[0])
 
 
@@ -122,7 +122,7 @@ def start_wishlist_notif():
 		now = datetime.datetime.now()
 		c = now-row[2]
 		#if 2 days have passed, product is not in wardrobe and 72 hours have not passed since last notif
-		if(c.seconds > (60) and wardrobe_product(row[0], row[3]) and check_frequency("wishlist_notif", row[0], 72)):
+		if(c.seconds > (hours * 60 * 60) and wardrobe_product(row[0], row[3]) and check_frequency("wishlist_notif", row[0], 72)):
 				if(row[0] not in user_ids):
 					print(row)
 					user_ids.append(row[0])
@@ -133,7 +133,7 @@ def start_wishlist_notif():
 		for row in users:
 			print(row)
 			if(row[1]!='temp'):
-				send_notif(row[1], "Hi, your wishlist feels abandoned. Wishes are meant to be fulfilled! Empty your wishlist before it runs out.")
+				send_notif(row[1],"Clear up your Wishlist", "Hi, your wishlist feels abandoned. Wishes are meant to be fulfilled! Empty your wishlist before it runs out.")
 				update_frequency("wishlist_notif", row[0])
 	else:
 		print("NA")
@@ -158,7 +158,7 @@ def start_order_trigger_notification():
 		for row in users:
 			print(row)
 			if(row[1]!='temp'):
-				send_notif(row[1], "We will love to see you back ! \nEnjoy your curated products which are only bound to get better.")
+				send_notif(row[1],"Just checking in", "We will love to see you back ! \nEnjoy your curated products which are only bound to get better.")
 				update_frequency("order_trigger", row[0])
 	else:
 		print("NA")
@@ -176,7 +176,7 @@ def start_product_purchase_notification():
 		now = datetime.datetime.now()
 		c = now - row[2]
 		print(c.seconds)
-		if(c.seconds > 1 * 60 * 60 and wardrobe_empty(row[0]) and check_frequency("product_purchase", row[0], 48)):
+		if(c.seconds > hours * 60 * 60 and wardrobe_empty(row[0]) and check_frequency("product_purchase", row[0], 48)):
 			users.append(row)
 	db.close()
 	print("Scheduling Product Purchase notif for : " )
@@ -184,7 +184,7 @@ def start_product_purchase_notification():
 		for row in users:
 			print(row)
 			if(row[1]!='temp'):
-				send_notif(row[1], "Keep browsing to find the perfect outfit. Click on the cart icon to buy it on the retailer's website.")
+				send_notif(row[1],"Found the perfect outfit yet?", "Keep browsing to find the perfect outfit. Click on the cart icon to buy it on the retailer's website.")
 				update_frequency("product_purchase", row[0])
 	else:
 		print("NA")
@@ -195,7 +195,7 @@ def main():
 	start_order_trigger_notification()
 	start_product_purchase_notification()
 
-
+# fUIlX2P_w3E:APA91bEu7HFmp6Eqfe8HKrOAILA2c2sNN58t6Zw6NY5kmZiaPqd8Iec825GoQnwFLQ7sTLr2nXi9vLmYU_wFcfJtsbuw5aRo7pYXo7orMJHteekfB0L7PeFsfYGBOl3yDbM4ZiQAmpDE
 
 if __name__=="__main__":
 	main()
