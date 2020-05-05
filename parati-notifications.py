@@ -1,6 +1,7 @@
-from pyfcm import FCMNotification
 import mysql.connector
 import datetime
+import requests
+import json
 
 
 def getDB():
@@ -10,12 +11,20 @@ def getDB():
 										 database="paratidb")        # name of the data base
 
 def send_notif(fcm_token,title, message):
-  push_service = FCMNotification(api_key="api-key")
-  registration_id = fcm_token
-  message_title = title
-  message_body = message
-  result = push_service.notify_single_device(registration_id=registration_id, message_title=message_title, message_body=message_body)
-  print(result)
+  url = 'https://fcm.googleapis.com/fcm/send'
+  payload = {
+	"data": {
+		"title" : title,
+		"body": message,
+		"redirection" : "MainActivity"
+	},
+	"to": fcm_token
+    }
+  headers = {"Content-Type" : "application/json",
+			"Authorization" : "key=api_key"
+			}
+  r = requests.post(url, data=json.dumps(payload), headers=headers)
+  print(r.content)
 
 def feedback_empty(user_id):
 	db = getDB()
@@ -92,9 +101,10 @@ def start_browsing_notif():
 		hours = 3
 		now = datetime.datetime.now()
 		c = now-row[3]
+		print(row)
 		if(c.seconds > (hours * 60 * 60) and feedback_empty(row[0]) and check_frequency("start_browsing", row[0], 48)):
-				print (row)
 				users.append(row)
+				print(row)
 
 	print("Scheduling Start Browsing notif for : " )
 	db.close()
@@ -142,7 +152,7 @@ def start_wishlist_notif():
 def start_order_trigger_notification():
 	db = getDB()
 	cur = db.cursor()
-	cur.execute("select a.user_id, a.fcm_token, b.updated_at from userapi_userprofile a inner join ( select MAX(updated_at) updated_at, user_id from userapi_userwardrobe) b on a.user_id = b.user_id")
+	cur.execute("select a.user_id, a.fcm_token, b.updated_at from userapi_userprofile a inner join ( select MAX(updated_at) updated_at, user_id from userapi_userwardrobe group by user_id) b on a.user_id = b.user_id")
 	users=[]
 	for row in cur.fetchall():
 		print(row)
@@ -195,7 +205,6 @@ def main():
 	start_order_trigger_notification()
 	start_product_purchase_notification()
 
-# fUIlX2P_w3E:APA91bEu7HFmp6Eqfe8HKrOAILA2c2sNN58t6Zw6NY5kmZiaPqd8Iec825GoQnwFLQ7sTLr2nXi9vLmYU_wFcfJtsbuw5aRo7pYXo7orMJHteekfB0L7PeFsfYGBOl3yDbM4ZiQAmpDE
 
 if __name__=="__main__":
 	main()
